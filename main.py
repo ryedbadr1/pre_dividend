@@ -38,10 +38,12 @@ import validstocks as vs
     - Check database every day and sell stocks right before ex-dividend or if the stock has increased more than ceiling% in value
         - Ceiling is a variable
     - Database checking for selling should occur every day, buying algorithm should occur once per week.
+    - Delete stock from database after it is sold
     
     PARAMETERS TO FOLLOW:
         - Do not make more than 3 day trades per week (should not have to anyways)
         - Do not go under min_buying_power (rather have a balance of 21 rather than 19 if min_buying_power is set to 20)
+        - Sell the stock early if it loses over 10% of its value (create stop loss)
     
     - If at any point you are confused about a step you can call/text 630-383-9281 or email ryedbadr1@gmail.com
 """
