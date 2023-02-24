@@ -1,9 +1,17 @@
 # pre_dividend
 
-Steps to get started:
-1. Go to a terminal and cd into your Desktop (cd Desktop/)
-2. Make sure you have git installed (git --version)
-3. If you do not have git installed then install git
-4. Run the following command => git clone https://github.com/ryedbadr1/pre_dividend.git
-5. You should now have a folder created on your desktop with the starter code
-6. Only commit changes to the gage branch or you can create new branches for version control just do not push to main
+# pre_dividend
+
+Before Running the Algo:
+
+1. Make sure Firefox is installed/updated to the latest version.
+2. Make sure to pip install the external python libraries I have included.
+
+Side Notes:
+
+1. As of now, I have completed the first 5 steps of the algo outlined in main.py.
+2. Running this program will open a link on Firefox, DO NOT close out of this tab, it will close automatically once it extracts the data.
+3. I will try to implement a strategy so the program can extract the data without opening a webpage.
+4. Running this program may generate '404 Client Error: Not Found for url'. This will happen when certain stocks are not listed on Robinhood. This will not effect the program, it runs just fine. It removes these stocks from the validstocks list.
+
+Please reach out with any questions/concerns.
