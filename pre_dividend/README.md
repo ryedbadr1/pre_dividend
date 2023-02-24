@@ -1,7 +1,5 @@
 # pre_dividend
 
-# pre_dividend
-
 Before Running the Algo:
 
 1. Make sure Firefox is installed/updated to the latest version.
