@@ -33,6 +33,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options
 import time
+import pymongo
 # DO NOT REMOVE ANY CODE BEFORE THIS POINT
 
 """ The trading algorithm fully layed out:
@@ -142,6 +143,8 @@ for stock in validstocks:
 '''
 Creating Database
 '''
+#connection_string = "mongodb+srv://prediv:prediv@cluster0.exonjyg.mongodb.net/?retryWrites=true&w=majority"
+#client = pymongo.MongoClient(connection_string)
 
 
 
