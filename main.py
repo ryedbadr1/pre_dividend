@@ -23,6 +23,16 @@ This just imports some of the starter code that I give you.
 sys.path.insert(1, os.path.abspath(os.path.dirname(sys.argv[0]))+str("\\userincludes"))
 import login as log
 import validstocks as vs
+from bs4 import BeautifulSoup
+import requests
+import requests.exceptions
+from datetime import datetime, timedelta, date
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.firefox.options import Options
+import time
 # DO NOT REMOVE ANY CODE BEFORE THIS POINT
 
 """ The trading algorithm fully layed out:
@@ -48,8 +58,117 @@ import validstocks as vs
     
     - If at any point you are confused about a step you can call/text 630-383-9281 or email ryedbadr1@gmail.com
 """
+'''
+List of stocks with ex-dividend date in one week
+'''
+
+# Load date one week from today
+weekaway = date.today() + timedelta(weeks = 1)
+
+# Run firefox in the background without opening the application
+options = Options()
+options.add_argument('-headless')
+driver = webdriver.Firefox(options=options)
+
+
+# Navigate to the dividend calendar page
+driver.get('https://www.investing.com/dividends-calendar/')
+
+# Click the "Next Week" tab
+next_week_tab = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "timeFrame_nextWeek")))
+driver.execute_script("arguments[0].click();", next_week_tab)
+
+#Scroll to the bottom to the page to let all stocks load in the table
+driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+# Wait for "Next Week" tab to load so we can pull data
+time.sleep(3)
+
+# Wait for the dividend table to load and grab html content
+table = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "dividendsCalendarData")))
+table_html = table.get_attribute('innerHTML')
+
+# Create a BeautifulSoup object from the HTML content
+soup = BeautifulSoup(table_html, 'html.parser')
+
+# Find all rows in the table
+rows = soup.find_all('tr')
+
+# Login to Robinhood account to retrieve latest prices and buying power
+log.login()
+
+# Loop through the rows and extract the information into a vs.ValidStock object, store in a list
+validstocks = []
+for row in rows[3:]:
+    if row.has_attr('tablesorterdivider'):
+        continue
+    cols = row.find_all('td')
+    s = cols[1].text
+    ticker = s[s.find("(")+1:s.find(")")]
+    if cols[2].text == weekaway.strftime("%b %d, %Y"):
+        price = rs.robinhood.stocks.get_latest_price(ticker, priceType='ask_price', includeExtendedHours=True)
+        if price[0] is not None:
+            stock = vs.ValidStock(ticker, float(price[0]), float(cols[3].text))
+            validstocks.append(stock)
+
+driver.quit()
+
+'''
+Create a list of stocks the user can afford
+'''
+
+#Load users buying power
+buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
+
+# Create a new list of all the stocks the user can afford
+for stock in validstocks:
+    if stock.price > buyingpower:
+        validstocks.remove(stock)
+
+'''
+Sorting the new list
+'''
+
+# Sort the list in order from highest to lowest dividend (insertion sort)
+for i in range(1, len(validstocks)):
+    value_to_sort = validstocks[i]
+    while validstocks[i - 1].dividend < value_to_sort.dividend and i > 0:
+        validstocks[i], validstocks[i - 1] = validstocks[i - 1], validstocks[i]
+        i = i - 1
+
+for stock in validstocks:
+    print(stock.dividend)
+    
+'''
+Creating Database
+'''
+
+
+
+'''
+Buy stocks
+'''
+# Minimum buying power
+#min_buying_power = 20
+
+# If the stock price is greater than our min_buying_power, do not buy, otherwise, purchase the stock at market price
+# Stock price might change in the few seconds it takes to get from here to when we modified the list based on the price of the stock, just fyi
+'''
+min_buying_power = 15
+for stock in validstocks:
+    buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
+    if (buyingpower - stock.price) < min_buying_power:
+        pass
+    else:
+        rs.robinhood.orders.order_buy_market(validstocks.name)
+    #myDoc = {"Ticker": stock.name, "Price": stock.price, "Date": date.today()}
+    #collection.insert_one(myDoc)
+
+'''
+
+
+'''
 # These variables are subject to change
-min_buying_power = 20
 ceiling = 15
 
 
@@ -61,11 +180,15 @@ test_stock = vs.ValidStock("APPL", 153.48, 0.59)
 # Log into a robinhood account
 # log.login(string email, string password)
 # If called with no parameters, it logs into my account
+
 log.login()
 
 #gets balance left in account (money left that is not invested)
 #use to test if you are logged in correctly
-print(rs.robinhood.profiles.load_account_profile()["buying_power"])
+
+#print(rs.robinhood.profiles.load_account_profile()["buying_power"])
+
+'''
 
 # Logout: keep at the end of the program
 rs.robinhood.authentication.logout()
