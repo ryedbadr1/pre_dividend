@@ -49,7 +49,7 @@ import validstocks as vs
     - If at any point you are confused about a step you can call/text 630-383-9281 or email ryedbadr1@gmail.com
 """
 # These variables are subject to change
-min_buying_power = 20
+min_buying_power = 15
 ceiling = 15
 
 
