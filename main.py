@@ -137,7 +137,7 @@ def div_sort(validstocks):
 Creating Database
 '''
 
-connection_string = "mongodb+srv://prediv:prediv@cluster0.exonjyg.mongodb.net/?retryWrites=true&w=majority"
+connection_string = ""
 client = pymongo.MongoClient(connection_string)
 
 db = client["prediv"]
