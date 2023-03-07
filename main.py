@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Make sure that you have the following dependancies installed:
-    robin_stocks
-    requests
-    BeautifulSoup
-    random
-"""
-
+import certifi
 import robin_stocks as rs
 # To install this dependancy: pip install robin_stocks
 # Documentation found at: https://github.com/jmfernandes/robin_stocks/blob/master/Robinhood.rst
@@ -14,12 +7,6 @@ import robin_stocks as rs
 # Note: documentation is a bit outdated, if you get an error while trying to use one of the functions and can't figure out why then let me know
 import sys
 import os
-
-
-"""
-Don't worry about the path insert and library that follows.
-This just imports some of the starter code that I give you.
-"""
 sys.path.insert(1, os.path.abspath(os.path.dirname(sys.argv[0]))+str("\\userincludes"))
 import login as log
 import validstocks as vs
@@ -49,7 +36,7 @@ import pymongo
     - Store all bought stocks in database along with date bought (maybe MongoDB) => we can discuss this when you get here
     - Check database every day and sell stocks right before ex-dividend or if the stock has increased more than ceiling% in value
         - Ceiling is a variable
-    - Database checking for selling should occur every day, buying algorithm should occur once per week.
+    - Database checking for selling should occur every day, buying algorithm should occur every day.
     - Delete stock from database after it is sold
     
     PARAMETERS TO FOLLOW:
@@ -60,7 +47,7 @@ import pymongo
     - If at any point you are confused about a step you can call/text 630-383-9281 or email ryedbadr1@gmail.com
 """
 
-def stockscrape():
+def stock_scrape():
     # Load date one week from today
     weekaway = date.today() + timedelta(weeks = 1)
 
@@ -68,7 +55,6 @@ def stockscrape():
     options = Options()
     options.add_argument('-headless')
     driver = webdriver.Firefox(options=options)
-
 
     # Navigate to the dividend calendar page
     driver.get('https://www.investing.com/dividends-calendar/')
@@ -81,7 +67,7 @@ def stockscrape():
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     # Wait for "Next Week" tab to load so we can pull data
-    time.sleep(3)
+    time.sleep(5)
 
     # Wait for the dividend table to load and grab html content
     table = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "dividendsCalendarData")))
@@ -113,7 +99,7 @@ def stockscrape():
     return validstocks
 
 
-def affordable_stock(validstocks):
+def affordable_stocks(validstocks):
     #Load users buying power
     buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
 
@@ -124,7 +110,7 @@ def affordable_stock(validstocks):
     return validstocks
 
 
-def div_sort(validstocks):
+def divSort(validstocks):
     # Sort the list in order from highest to lowest dividend (insertion sort)
     for i in range(1, len(validstocks)):
         value_to_sort = validstocks[i]
@@ -137,61 +123,81 @@ def div_sort(validstocks):
 Creating Database
 '''
 
-connection_string = ""
-client = pymongo.MongoClient(connection_string)
-
-db = client["prediv"]
-collection = db["stocks"]
-
-post = {"ex:stock": "AAPL", "price": 200}
-collection.insert_one(post)
+def database():
+    connection = ""
+    client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
+    return client["prediv"]
 
 '''
 Buy stocks
 '''
-# Minimum buying power
-#min_buying_power = 20
 
-# If the stock price is greater than our min_buying_power, do not buy, otherwise, purchase the stock at market price
 # Stock price might change in the few seconds it takes to get from here to when we modified the list based on the price of the stock, just fyi
-'''
-min_buying_power = 15
-for stock in validstocks:
-    buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
-    if (buyingpower - stock.price) < min_buying_power:
-        pass
-    else:
-        rs.robinhood.orders.order_buy_market(validstocks.name)
-    #myDoc = {"Ticker": stock.name, "Price": stock.price, "Date": date.today()}
-    #collection.insert_one(myDoc)
+# perhaps we should add a trailing stop loss instead of just 10%?
+def buy_stocks(validstocks):
+    db = database()
+    collection = db["stocks"]
+    date_today = str(date.today())
+    min_buying_power = 15
+
+    for stock in validstocks:
+        buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
+        if (buyingpower - stock.price) < min_buying_power:
+            pass
+        else:
+            rs.robinhood.orders.order_buy_market(validstocks.name, 1)
+            post = {"Ticker": stock.name, "Price": stock.price, "Date": date_today}
+            collection.insert_one(post)
 
 '''
-
-
+Selling Stocks
 '''
-# These variables are subject to change
-ceiling = 15
 
+def sell_stocks():
+    week_ago = str(date.today() - timedelta(weeks = 1))
+    db = database()
+    collection = db["stocks"]
+    week_ago_stocks = collection.find(
+        {"Date": week_ago},
+        {"Ticker":1, '_id':0}
+    )
 
-# Example of how to initialize a stock in a class
-# Note: you can edit this class in validstocks.py if you see fit (/userincludes/validstocks.py)
-test_stock = vs.ValidStock("APPL", 153.48, 0.59)
+    for stock in week_ago_stocks:
+        rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
+        collection.delete_one(stock)
+
+    ceiling = 10
+    stop_loss = -10
+
+    all_stocks = collection.find({})
+
+    for stock in all_stocks:
+        newprice = rs.robinhood.stocks.get_latest_price(stock["Ticker"], priceType=None, includeExtendedHours=True)
+        oldprice = stock["Price"]
+
+        if ((newprice - oldprice) / oldprice) * 100 >= ceiling:
+            rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
+            collection.delete_one(stock)
+
+        if ((newprice - oldprice) / oldprice) * 100 <= stop_loss:
+            rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
+            collection.delete_one(stock)
+
 
 
 # Log into a robinhood account
 # log.login(string email, string password)
 # If called with no parameters, it logs into my account
 
-log.login()
+# log.login()
 
-#gets balance left in account (money left that is not invested)
 #use to test if you are logged in correctly
 
-#print(rs.robinhood.profiles.load_account_profile()["buying_power"])
 
 '''
-
+#def runProgram():
+    #divSort(affordable_stocks(stock_scrape()))
+    
 # Logout: keep at the end of the program
 # rs.robinhood.authentication.logout()
-
-
+'''

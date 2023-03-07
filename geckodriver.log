@@ -33,3 +33,37 @@ DevTools listening on ws://127.0.0.1:53942/devtools/browser/ea259e37-01ee-4b1d-8
 JavaScript error: https://connect.facebook.net/en_US/fbevents.js, line 27: TypeError: f.queue is undefined
 1677684527327	Marionette	INFO	Stopped listening on port 53961
 Dynamically enable window occlusion 1
+1677876928430	geckodriver	INFO	Listening on 127.0.0.1:63035
+1677876931462	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-headless" "--remote-debugging-port" "63036" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\gagem\\AppData\\Local\\Temp\\rust_mozprofile9hhHoM"
+*** You are running in headless mode.
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1677876931849	Marionette	INFO	Marionette enabled
+Dynamically enable window occlusion 0
+1677876931854	Marionette	INFO	Listening on port 63050
+WebDriver BiDi listening on ws://127.0.0.1:63036
+Read port: 63050
+1677876932025	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+[GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\gagem\\AppData\\Local\\Temp\\rust_mozprofile9hhHoM\\search.json.mozlz4", (void 0)))
+console.error: ({})
+DevTools listening on ws://127.0.0.1:63036/devtools/browser/a7c9db07-350d-4c0c-837f-cfe58006393f
+1677876947538	Marionette	INFO	Stopped listening on port 63050
+Dynamically enable window occlusion 1
+1677877022365	geckodriver	INFO	Listening on 127.0.0.1:63174
+1677877025394	mozrunner::runner	INFO	Running command: "C:\\Program Files\\Mozilla Firefox\\firefox.exe" "--marionette" "-headless" "--remote-debugging-port" "63175" "--remote-allow-hosts" "localhost" "-no-remote" "-profile" "C:\\Users\\gagem\\AppData\\Local\\Temp\\rust_mozprofileRQDEcz"
+*** You are running in headless mode.
+console.warn: services.settings: Ignoring preference override of remote settings server
+console.warn: services.settings: Allow by setting MOZ_REMOTE_SETTINGS_DEVTOOLS=1 in the environment
+1677877025668	Marionette	INFO	Marionette enabled
+Dynamically enable window occlusion 0
+1677877025673	Marionette	INFO	Listening on port 63184
+WebDriver BiDi listening on ws://127.0.0.1:63175
+Read port: 63184
+1677877025822	RemoteAgent	WARN	TLS certificate errors will be ignored for this session
+[GFX1-]: RenderCompositorSWGL failed mapping default framebuffer, no dt
+console.warn: SearchSettings: "get: No settings file exists, new profile?" (new NotFoundError("Could not open the file at C:\\Users\\gagem\\AppData\\Local\\Temp\\rust_mozprofileRQDEcz\\search.json.mozlz4", (void 0)))
+console.error: ({})
+DevTools listening on ws://127.0.0.1:63175/devtools/browser/7da259c9-ed81-4dd9-b70f-a9a526f12617
+1677877041297	Marionette	INFO	Stopped listening on port 63184
+Dynamically enable window occlusion 1
