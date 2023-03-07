@@ -96,7 +96,7 @@ def stock_scrape():
                 stock = vs.ValidStock(ticker, float(price[0]), float(cols[3].text))
                 validstocks.append(stock)
     driver.quit()
-    return validstocks
+    return print(validstocks)
 
 
 def affordable_stocks(validstocks):
@@ -198,6 +198,7 @@ def sell_stocks():
 #def runProgram():
     #divSort(affordable_stocks(stock_scrape()))
     
-# Logout: keep at the end of the program
-# rs.robinhood.authentication.logout()
-'''
+# Logout: keep at the end of the program'''
+stock_scrape()
+
+rs.robinhood.authentication.logout()
