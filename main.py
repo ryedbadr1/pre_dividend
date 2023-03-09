@@ -121,7 +121,7 @@ Creating Database
 '''
 
 def database():
-    connection = "mongodb+srv://prediv:prediv@cluster0.exonjyg.mongodb.net/?retryWrites=true&w=majority"
+    connection = ""
     client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
     return client["prediv"]
 
