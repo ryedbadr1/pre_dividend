@@ -96,14 +96,12 @@ def stock_scrape():
                 stock = vs.ValidStock(ticker, float(price[0]), float(cols[3].text))
                 validstocks.append(stock)
     driver.quit()
-    return print(validstocks)
+    return validstocks
 
 
 def affordable_stocks(validstocks):
-    #Load users buying power
     buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
 
-    # Create a new list of all the stocks the user can afford
     for stock in validstocks:
         if stock.price > buyingpower:
             validstocks.remove(stock)
@@ -111,7 +109,6 @@ def affordable_stocks(validstocks):
 
 
 def divSort(validstocks):
-    # Sort the list in order from highest to lowest dividend (insertion sort)
     for i in range(1, len(validstocks)):
         value_to_sort = validstocks[i]
         while validstocks[i - 1].dividend < value_to_sort.dividend and i > 0:
@@ -124,7 +121,7 @@ Creating Database
 '''
 
 def database():
-    connection = ""
+    connection = "mongodb+srv://prediv:prediv@cluster0.exonjyg.mongodb.net/?retryWrites=true&w=majority"
     client = pymongo.MongoClient(connection, tlsCAFile=certifi.where())
     return client["prediv"]
 
@@ -140,14 +137,21 @@ def buy_stocks(validstocks):
     date_today = str(date.today())
     min_buying_power = 15
 
-    for stock in validstocks:
-        buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
-        if (buyingpower - stock.price) < min_buying_power:
-            pass
-        else:
-            rs.robinhood.orders.order_buy_market(validstocks.name, 1)
-            post = {"Ticker": stock.name, "Price": stock.price, "Date": date_today}
-            collection.insert_one(post)
+    while True:
+        all_stocks_bought = all(buyingpower - stock.price < min_buying_power for stock in validstocks)
+
+        for stock in validstocks:
+            buyingpower = float(rs.robinhood.profiles.load_account_profile()["buying_power"])
+            if (buyingpower - stock.price) < min_buying_power:
+                pass
+
+            else:
+                rs.robinhood.orders.order_buy_market(validstocks.name, 1)
+                post = {"Ticker": stock.name, "Price": stock.price, "Date": date_today}
+                collection.insert_one(post)
+                
+        if all_stocks_bought is True:
+            break
 
 '''
 Selling Stocks
@@ -155,6 +159,7 @@ Selling Stocks
 
 def sell_stocks():
     week_ago = str(date.today() - timedelta(weeks = 1))
+    today = str(date.today())
     db = database()
     collection = db["stocks"]
     week_ago_stocks = collection.find(
@@ -168,37 +173,33 @@ def sell_stocks():
 
     ceiling = 10
     stop_loss = -10
+    count = 0
 
     all_stocks = collection.find({})
 
     for stock in all_stocks:
         newprice = rs.robinhood.stocks.get_latest_price(stock["Ticker"], priceType=None, includeExtendedHours=True)
         oldprice = stock["Price"]
+        percent_change = ((newprice - oldprice) / oldprice) * 100
 
-        if ((newprice - oldprice) / oldprice) * 100 >= ceiling:
+        if stock["Date"] == today & ((percent_change >= ceiling) | (percent_change <= stop_loss)):
+            rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
+            collection.delete_one(stock)
+            count += 1
+            if count == 3:
+                sys.exit()
+
+        elif percent_change >= ceiling:
             rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
             collection.delete_one(stock)
 
-        if ((newprice - oldprice) / oldprice) * 100 <= stop_loss:
+        elif percent_change <= stop_loss:
             rs.robinhood.orders.order_sell_market(stock["Ticker"], 1)
             collection.delete_one(stock)
 
 
-
-# Log into a robinhood account
-# log.login(string email, string password)
-# If called with no parameters, it logs into my account
-
-# log.login()
-
-#use to test if you are logged in correctly
-
-
-'''
-#def runProgram():
-    #divSort(affordable_stocks(stock_scrape()))
+def runProgram():
+    sell_stocks(buy_stocks(database(divSort(affordable_stocks(stock_scrape())))))
     
-# Logout: keep at the end of the program'''
-stock_scrape()
-
-rs.robinhood.authentication.logout()
+# Logout: keep at the end of the program
+# rs.robinhood.authentication.logout()

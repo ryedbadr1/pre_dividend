@@ -4,6 +4,9 @@ Created on Mon Feb 13 23:31:45 2023
 
 @author: Ryed
 """
+# Log into a robinhood account
+# log.login(string email, string password)
+# If called with no parameters, it logs into my account
 
 import robin_stocks as rs
 import sys
@@ -27,6 +30,3 @@ def login(email = None, passwords = None):
             password=passwords,
             expiresIn=86400,
             by_sms=True)
-
-
-    
